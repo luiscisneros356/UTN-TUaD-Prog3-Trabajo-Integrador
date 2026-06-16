@@ -13,9 +13,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -528,10 +529,217 @@ public class Main {
     }
 
     private static void menuPedidos() {
-        // TODO: Implementar submenú de Pedidos.
-        // Opciones: 1-Alta  2-Cambiar estado  3-Baja lógica  4-Listado
-        //           5-Por usuario  6-Por estado  0-Volver
-        System.out.println("[Pedidos] → TODO: implementar");
+        boolean volver = false;
+        while (!volver) {
+            System.out.println();
+            System.out.println("----- GESTIÓN DE PEDIDOS -----");
+            System.out.println("1. Alta de pedido");
+            System.out.println("2. Cambiar estado");
+            System.out.println("3. Baja lógica");
+            System.out.println("4. Listado");
+            System.out.println("5. Pedidos por usuario");
+            System.out.println("6. Pedidos por estado");
+            System.out.println("0. Volver");
+            switch (leer("Opción: ")) {
+                case "1": altaPedido(); break;
+                case "2": cambiarEstadoPedido(); break;
+                case "3": bajaPedido(); break;
+                case "4": listarPedidos(); break;
+                case "5": pedidosPorUsuario(); break;
+                case "6": pedidosPorEstado(); break;
+                case "0": volver = true; break;
+                default: System.out.println("Opción inválida.");
+            }
+        }
+    }
+
+    private static void altaPedido() {
+        List<Usuario> usuarios = usuarioRepo.listarActivos();
+        if (usuarios.isEmpty()) {
+            System.out.println("Error: no hay usuarios activos. Cree un usuario primero.");
+            return;
+        }
+        mostrarUsuarios(usuarios);
+        Long usuarioId = leerId("ID del usuario: ");
+        if (usuarioId == null) {
+            System.out.println("Error: ID inválido.");
+            return;
+        }
+        Optional<Usuario> optUsuario = usuarioRepo.buscarPorId(usuarioId);
+        if (optUsuario.isEmpty() || optUsuario.get().isEliminado()) {
+            System.out.println("Error: no existe un usuario activo con ese ID.");
+            return;
+        }
+        FormaPago formaPago = leerFormaPago();
+
+        // Lista temporal en memoria: idProducto -> cantidad (aún no se persiste nada).
+        Map<Long, Integer> items = new LinkedHashMap<>();
+        boolean seguir = true;
+        while (seguir) {
+            List<Producto> productos = productoRepo.listarActivos();
+            if (productos.isEmpty()) {
+                System.out.println("No hay productos activos para agregar.");
+                break;
+            }
+            System.out.println("ID | Nombre | Precio | Stock | Disponible");
+            for (Producto p : productos) {
+                System.out.println(p.getId() + " | " + p.getNombre() + " | " + p.getPrecio()
+                        + " | " + p.getStock() + " | "
+                        + (Boolean.TRUE.equals(p.getDisponible()) ? "Sí" : "No"));
+            }
+            Long prodId = leerId("ID del producto a agregar: ");
+            if (prodId == null) {
+                System.out.println("Error: ID inválido.");
+            } else {
+                Optional<Producto> optProd = productoRepo.buscarPorId(prodId);
+                if (optProd.isEmpty() || optProd.get().isEliminado()) {
+                    System.out.println("Error: no existe un producto activo con ese ID.");
+                } else if (!Boolean.TRUE.equals(optProd.get().getDisponible())) {
+                    System.out.println("Error: el producto no está disponible.");
+                } else {
+                    Integer cantidad = leerEntero("Cantidad: ");
+                    if (cantidad == null || cantidad <= 0) {
+                        System.out.println("Error: la cantidad debe ser un entero mayor a 0.");
+                    } else {
+                        int yaPedido = items.getOrDefault(prodId, 0);
+                        if (optProd.get().getStock() < yaPedido + cantidad) {
+                            System.out.println("Error: stock insuficiente. Disponible: "
+                                    + (optProd.get().getStock() - yaPedido));
+                        } else {
+                            items.merge(prodId, cantidad, Integer::sum);
+                            System.out.println("Agregado: " + optProd.get().getNombre()
+                                    + " x" + cantidad + ".");
+                        }
+                    }
+                }
+            }
+            seguir = leer("¿Agregar otro producto? (S/N): ").equalsIgnoreCase("S");
+        }
+
+        if (items.isEmpty()) {
+            System.out.println("El pedido debe tener al menos un producto. Operación cancelada.");
+            return;
+        }
+
+        try {
+            Pedido pedido = pedidoRepo.crearPedido(usuarioId, formaPago, items);
+            if (pedido == null) {
+                System.out.println("Error: el usuario seleccionado no está disponible.");
+                return;
+            }
+            System.out.println("Pedido creado con ID " + pedido.getId() + ".");
+            System.out.println("Fecha: " + pedido.getFecha());
+            System.out.println("Usuario: " + optUsuario.get().getNombre()
+                    + " " + optUsuario.get().getApellido());
+            System.out.println("Forma de pago: " + pedido.getFormaPago());
+            System.out.println("Detalle:");
+            for (DetallePedido d : pedido.getDetalles()) {
+                System.out.println("  - " + d.getProducto().getNombre() + " x" + d.getCantidad()
+                        + " = " + String.format(Locale.US, "$%.2f", d.getSubtotal()));
+            }
+            System.out.println("Total: " + String.format(Locale.US, "$%.2f", pedido.getTotal()));
+        } catch (RuntimeException e) {
+            System.out.println("Error al crear el pedido: " + e.getMessage());
+        }
+    }
+
+    private static void cambiarEstadoPedido() {
+        Long id = leerId("ID del pedido: ");
+        if (id == null) {
+            System.out.println("Error: ID inválido.");
+            return;
+        }
+        Optional<Pedido> opt = pedidoRepo.buscarPorId(id);
+        if (opt.isEmpty() || opt.get().isEliminado()) {
+            System.out.println("Error: no existe un pedido activo con ese ID.");
+            return;
+        }
+        Pedido pedido = opt.get();
+        System.out.println("Estado actual: " + pedido.getEstado());
+        Estado nuevo = leerEstado();
+        pedido.setEstado(nuevo);
+        pedidoRepo.guardar(pedido);
+        System.out.println("Pedido " + pedido.getId() + " actualizado al estado " + nuevo + ".");
+    }
+
+    private static void bajaPedido() {
+        Long id = leerId("ID del pedido a dar de baja: ");
+        if (id == null) {
+            System.out.println("Error: ID inválido.");
+            return;
+        }
+        Optional<Pedido> opt = pedidoRepo.buscarPorId(id);
+        if (opt.isEmpty() || opt.get().isEliminado()) {
+            System.out.println("Error: no existe un pedido activo con ese ID.");
+            return;
+        }
+        Double total = opt.get().getTotal();
+        if (pedidoRepo.eliminarLogico(id)) {
+            System.out.println("Pedido " + id + " dado de baja. Total: "
+                    + String.format(Locale.US, "$%.2f", total == null ? 0.0 : total)
+                    + ". El stock no se restaura.");
+        } else {
+            System.out.println("Error: no se pudo dar de baja el pedido.");
+        }
+    }
+
+    private static void listarPedidos() {
+        List<Pedido> pedidos = pedidoRepo.listarActivos();
+        if (pedidos.isEmpty()) {
+            System.out.println("No hay pedidos activos.");
+            return;
+        }
+        System.out.println("ID | Fecha | Estado | Forma de pago | Usuario | Total");
+        for (Pedido p : pedidos) {
+            String usuario = pedidoRepo.buscarUsuarioPorPedido(p.getId())
+                    .map(u -> u.getNombre() + " " + u.getApellido())
+                    .orElse("(sin usuario)");
+            System.out.println(p.getId() + " | " + p.getFecha() + " | " + p.getEstado()
+                    + " | " + p.getFormaPago() + " | " + usuario + " | "
+                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal()));
+        }
+    }
+
+    private static void pedidosPorUsuario() {
+        List<Usuario> usuarios = usuarioRepo.listarActivos();
+        if (usuarios.isEmpty()) {
+            System.out.println("No hay usuarios activos.");
+            return;
+        }
+        mostrarUsuarios(usuarios);
+        Long id = leerId("ID del usuario: ");
+        if (id == null) {
+            System.out.println("Error: ID inválido.");
+            return;
+        }
+        List<Pedido> pedidos = pedidoRepo.buscarPorUsuario(id);
+        if (pedidos.isEmpty()) {
+            System.out.println("El usuario no tiene pedidos activos.");
+            return;
+        }
+        System.out.println("ID | Fecha | Estado | Forma de pago | Total");
+        for (Pedido p : pedidos) {
+            System.out.println(p.getId() + " | " + p.getFecha() + " | " + p.getEstado()
+                    + " | " + p.getFormaPago() + " | "
+                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal()));
+        }
+    }
+
+    private static void pedidosPorEstado() {
+        Estado estado = leerEstado();
+        List<Pedido> pedidos = pedidoRepo.buscarPorEstado(estado);
+        if (pedidos.isEmpty()) {
+            System.out.println("No hay pedidos con estado " + estado + ".");
+            return;
+        }
+        System.out.println("ID | Fecha | Usuario | Total");
+        for (Pedido p : pedidos) {
+            String usuario = pedidoRepo.buscarUsuarioPorPedido(p.getId())
+                    .map(u -> u.getNombre() + " " + u.getApellido())
+                    .orElse("(sin usuario)");
+            System.out.println(p.getId() + " | " + p.getFecha() + " | " + usuario + " | "
+                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal()));
+        }
     }
 
     private static void menuReportes() {
@@ -596,6 +804,31 @@ public class Main {
                 return Rol.USUARIO;
             }
             System.out.println("Opción inválida, intente de nuevo.");
+        }
+    }
+
+    /** Solicita la forma de pago hasta recibir una opción válida. */
+    private static FormaPago leerFormaPago() {
+        while (true) {
+            switch (leer("Forma de pago (1-TARJETA, 2-TRANSFERENCIA, 3-EFECTIVO): ")) {
+                case "1": return FormaPago.TARJETA;
+                case "2": return FormaPago.TRANSFERENCIA;
+                case "3": return FormaPago.EFECTIVO;
+                default: System.out.println("Opción inválida, intente de nuevo.");
+            }
+        }
+    }
+
+    /** Solicita un estado de pedido hasta recibir una opción válida. */
+    private static Estado leerEstado() {
+        while (true) {
+            switch (leer("Estado (1-PENDIENTE, 2-CONFIRMADO, 3-TERMINADO, 4-CANCELADO): ")) {
+                case "1": return Estado.PENDIENTE;
+                case "2": return Estado.CONFIRMADO;
+                case "3": return Estado.TERMINADO;
+                case "4": return Estado.CANCELADO;
+                default: System.out.println("Opción inválida, intente de nuevo.");
+            }
         }
     }
 
