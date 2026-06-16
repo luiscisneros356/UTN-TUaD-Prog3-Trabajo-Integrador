@@ -2,7 +2,6 @@ package com.tp.jpa.repository;
 
 import com.tp.jpa.model.Usuario;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +20,19 @@ public class UsuarioRepository extends BaseRepository<Usuario> {
      * Retorna el usuario activo con el mail indicado.
      */
     public Optional<Usuario> buscarPorMail(String mail) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Método no implementado aún");
+        EntityManager em = emf.createEntityManager();
+        try {
+            // JPQL: busca un usuario activo por su mail. Se usa getResultList()
+            // en lugar de getSingleResult() para evitar excepción si no existe;
+            // findFirst() devuelve Optional.empty() cuando no hay coincidencia.
+            String jpql = "SELECT u FROM Usuario u "
+                    + "WHERE u.mail = :mail AND u.eliminado = false";
+            List<Usuario> resultado = em.createQuery(jpql, Usuario.class)
+                    .setParameter("mail", mail)
+                    .getResultList();
+            return resultado.stream().findFirst();
+        } finally {
+            em.close();
+        }
     }
 }

@@ -20,7 +20,17 @@ public class ProductoRepository extends BaseRepository<Producto> {
      * Retorna los productos activos que pertenecen a la categoría indicada.
      */
     public List<Producto> buscarPorCategoria(Long categoriaId) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Método no implementado aún");
+        EntityManager em = emf.createEntityManager();
+        try {
+            // JPQL: navega desde Categoria a través de c.productos y filtra por
+            // c.id = :catId y p.eliminado = false (excluye bajas lógicas).
+            String jpql = "SELECT p FROM Categoria c JOIN c.productos p "
+                    + "WHERE c.id = :catId AND p.eliminado = false";
+            return em.createQuery(jpql, Producto.class)
+                    .setParameter("catId", categoriaId)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
     }
 }

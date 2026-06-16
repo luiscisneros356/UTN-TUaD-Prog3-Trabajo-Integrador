@@ -21,15 +21,35 @@ public class PedidoRepository extends BaseRepository<Pedido> {
      * Retorna los pedidos activos del usuario indicado.
      */
     public List<Pedido> buscarPorUsuario(Long idUsuario) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Método no implementado aún");
+        EntityManager em = emf.createEntityManager();
+        try {
+            // JPQL: navega desde Usuario a través de u.pedidos y filtra por
+            // u.id = :uid y p.eliminado = false (excluye bajas lógicas).
+            String jpql = "SELECT p FROM Usuario u JOIN u.pedidos p "
+                    + "WHERE u.id = :uid AND p.eliminado = false";
+            return em.createQuery(jpql, Pedido.class)
+                    .setParameter("uid", idUsuario)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
     }
 
     /**
      * Retorna los pedidos activos que coinciden con el estado indicado.
      */
     public List<Pedido> buscarPorEstado(Estado estado) {
-        // TODO: implementar
-        throw new UnsupportedOperationException("Método no implementado aún");
+        EntityManager em = emf.createEntityManager();
+        try {
+            // JPQL: retorna los pedidos activos con el estado indicado.
+            // Útil para filtrar PENDIENTE, CONFIRMADO, TERMINADO o CANCELADO.
+            String jpql = "SELECT p FROM Pedido p "
+                    + "WHERE p.estado = :estado AND p.eliminado = false";
+            return em.createQuery(jpql, Pedido.class)
+                    .setParameter("estado", estado)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
     }
 }
