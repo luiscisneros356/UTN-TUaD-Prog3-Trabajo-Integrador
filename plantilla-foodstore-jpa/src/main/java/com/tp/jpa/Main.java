@@ -351,9 +351,180 @@ public class Main {
     }
 
     private static void menuUsuarios() {
-        // TODO: Implementar submenú de Usuarios.
-        // Opciones: 1-Alta  2-Modificar  3-Baja lógica  4-Listado  5-Buscar por mail  0-Volver
-        System.out.println("[Usuarios] → TODO: implementar");
+        boolean volver = false;
+        while (!volver) {
+            System.out.println();
+            System.out.println("----- GESTIÓN DE USUARIOS -----");
+            System.out.println("1. Alta");
+            System.out.println("2. Modificar");
+            System.out.println("3. Baja lógica");
+            System.out.println("4. Listado");
+            System.out.println("5. Buscar por mail");
+            System.out.println("0. Volver");
+            switch (leer("Opción: ")) {
+                case "1": altaUsuario(); break;
+                case "2": modificarUsuario(); break;
+                case "3": bajaUsuario(); break;
+                case "4": listarUsuarios(); break;
+                case "5": buscarUsuarioPorMail(); break;
+                case "0": volver = true; break;
+                default: System.out.println("Opción inválida.");
+            }
+        }
+    }
+
+    private static void altaUsuario() {
+        String nombre = leer("Nombre: ");
+        if (nombre.isEmpty()) {
+            System.out.println("Error: el nombre es obligatorio.");
+            return;
+        }
+        String apellido = leer("Apellido: ");
+        if (apellido.isEmpty()) {
+            System.out.println("Error: el apellido es obligatorio.");
+            return;
+        }
+        String mail = leer("Mail: ");
+        if (mail.isEmpty()) {
+            System.out.println("Error: el mail es obligatorio.");
+            return;
+        }
+        if (usuarioRepo.buscarPorMail(mail).isPresent()) {
+            System.out.println("Error: ya existe un usuario activo con ese mail.");
+            return;
+        }
+        String celular = leer("Celular (opcional): ");
+        String contrasena = leer("Contraseña: ");
+        if (contrasena.isEmpty()) {
+            System.out.println("Error: la contraseña es obligatoria.");
+            return;
+        }
+        Rol rol = leerRol();
+        Usuario usuario = Usuario.builder()
+                .nombre(nombre)
+                .apellido(apellido)
+                .mail(mail)
+                .celular(celular.isEmpty() ? null : celular)
+                .contraseña(contrasena)
+                .rol(rol)
+                .build();
+        try {
+            Usuario guardado = usuarioRepo.guardar(usuario);
+            System.out.println("Usuario creado con ID " + guardado.getId() + ".");
+        } catch (RuntimeException e) {
+            System.out.println("Error al guardar el usuario (¿mail repetido?).");
+        }
+    }
+
+    private static void modificarUsuario() {
+        List<Usuario> activos = usuarioRepo.listarActivos();
+        if (activos.isEmpty()) {
+            System.out.println("No hay usuarios activos.");
+            return;
+        }
+        mostrarUsuarios(activos);
+        Long id = leerId("ID del usuario a modificar: ");
+        if (id == null) {
+            System.out.println("Error: ID inválido.");
+            return;
+        }
+        Optional<Usuario> opt = usuarioRepo.buscarPorId(id);
+        if (opt.isEmpty() || opt.get().isEliminado()) {
+            System.out.println("Error: no existe un usuario activo con ese ID.");
+            return;
+        }
+        Usuario usuario = opt.get();
+        System.out.println("Nombre actual: " + usuario.getNombre());
+        System.out.println("Apellido actual: " + usuario.getApellido());
+        System.out.println("Mail actual: " + usuario.getMail());
+        System.out.println("Celular actual: "
+                + (usuario.getCelular() == null ? "" : usuario.getCelular()));
+        String nombre = leer("Nuevo nombre (Enter para conservar): ");
+        if (!nombre.isEmpty()) {
+            usuario.setNombre(nombre);
+        }
+        String apellido = leer("Nuevo apellido (Enter para conservar): ");
+        if (!apellido.isEmpty()) {
+            usuario.setApellido(apellido);
+        }
+        String mailIn = leer("Nuevo mail (Enter para conservar): ");
+        if (!mailIn.isEmpty() && !mailIn.equals(usuario.getMail())) {
+            Optional<Usuario> existente = usuarioRepo.buscarPorMail(mailIn);
+            if (existente.isPresent() && !existente.get().getId().equals(usuario.getId())) {
+                System.out.println("Error: el mail ya está en uso por otro usuario. No se modificó.");
+                return;
+            }
+            usuario.setMail(mailIn);
+        }
+        String celular = leer("Nuevo celular (Enter para conservar): ");
+        if (!celular.isEmpty()) {
+            usuario.setCelular(celular);
+        }
+        String contrasena = leer("Nueva contraseña (Enter para conservar): ");
+        if (!contrasena.isEmpty()) {
+            usuario.setContraseña(contrasena);
+        }
+        try {
+            usuarioRepo.guardar(usuario);
+            System.out.println("Usuario actualizado.");
+        } catch (RuntimeException e) {
+            System.out.println("Error al actualizar el usuario.");
+        }
+    }
+
+    private static void bajaUsuario() {
+        Long id = leerId("ID del usuario a dar de baja: ");
+        if (id == null) {
+            System.out.println("Error: ID inválido.");
+            return;
+        }
+        Optional<Usuario> opt = usuarioRepo.buscarPorId(id);
+        if (opt.isEmpty() || opt.get().isEliminado()) {
+            System.out.println("Error: no existe un usuario activo con ese ID.");
+            return;
+        }
+        String nombreCompleto = opt.get().getNombre() + " " + opt.get().getApellido();
+        if (usuarioRepo.eliminarLogico(id)) {
+            System.out.println("Usuario \"" + nombreCompleto + "\" dado de baja. Sus pedidos se conservan.");
+        } else {
+            System.out.println("Error: no se pudo dar de baja el usuario.");
+        }
+    }
+
+    private static void listarUsuarios() {
+        List<Usuario> activos = usuarioRepo.listarActivos();
+        if (activos.isEmpty()) {
+            System.out.println("No hay usuarios activos.");
+            return;
+        }
+        mostrarUsuarios(activos);
+    }
+
+    private static void buscarUsuarioPorMail() {
+        String mail = leer("Mail a buscar: ");
+        if (mail.isEmpty()) {
+            System.out.println("Error: el mail es obligatorio.");
+            return;
+        }
+        Optional<Usuario> opt = usuarioRepo.buscarPorMail(mail);
+        if (opt.isEmpty()) {
+            System.out.println("No existe un usuario activo con ese mail.");
+            return;
+        }
+        Usuario u = opt.get();
+        System.out.println("ID: " + u.getId());
+        System.out.println("Nombre: " + u.getNombre() + " " + u.getApellido());
+        System.out.println("Mail: " + u.getMail());
+        System.out.println("Celular: " + (u.getCelular() == null ? "" : u.getCelular()));
+        System.out.println("Rol: " + u.getRol());
+    }
+
+    private static void mostrarUsuarios(List<Usuario> usuarios) {
+        System.out.println("ID | Nombre completo | Mail | Rol");
+        for (Usuario u : usuarios) {
+            System.out.println(u.getId() + " | " + u.getNombre() + " " + u.getApellido()
+                    + " | " + u.getMail() + " | " + u.getRol());
+        }
     }
 
     private static void menuPedidos() {
@@ -411,6 +582,20 @@ public class Main {
             return Integer.parseInt(entrada);
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    /** Solicita el rol hasta recibir una opción válida (1-ADMIN, 2-USUARIO). */
+    private static Rol leerRol() {
+        while (true) {
+            String entrada = leer("Rol (1-ADMIN, 2-USUARIO): ");
+            if (entrada.equals("1")) {
+                return Rol.ADMIN;
+            }
+            if (entrada.equals("2")) {
+                return Rol.USUARIO;
+            }
+            System.out.println("Opción inválida, intente de nuevo.");
         }
     }
 
