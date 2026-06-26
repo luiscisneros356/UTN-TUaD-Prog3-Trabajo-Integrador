@@ -108,9 +108,14 @@ Abrir el navegador en `http://localhost:5173`.
 | Cliente | cliente@food.com | cliente123 |
 
 ---
+##  Documentación Académica y Técnica (Formato PDF) 
+
+Se encuentra en el root del proyecto: Documentacion_academica_tecnica.pdf
+Pero tambien adjunto enlace //TODO agregar
+
 
 ## Video demostrativo
 
-[Ver video en YouTube](ENLACE_AQUI)
+[Ver video en YouTube](ENLACE_AQUI) //TODO agregar
 
 ---
