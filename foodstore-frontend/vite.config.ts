@@ -6,5 +6,9 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    fs: {
+      // Permite importar archivos desde la carpeta data/ compartida (un nivel arriba del root).
+      allow: ['..'],
+    },
   },
 });

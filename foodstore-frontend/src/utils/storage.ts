@@ -2,10 +2,10 @@ import type { Categoria, Producto, Pedido, Usuario } from "../types";
 
 // Datos semilla: se cargan desde los JSON la primera vez y luego se trabaja
 // sobre localStorage (persistencia entre sesiones, sólo con fines educativos).
-import categoriasSeed from "../data/categorias.json";
-import productosSeed from "../data/productos.json";
-import usuariosSeed from "../data/usuarios.json";
-import pedidosSeed from "../data/pedidos.json";
+import categoriasSeed from "../../../data/categorias.json";
+import productosSeed from "../../../data/productos.json";
+import usuariosSeed from "../../../data/usuarios.json";
+import pedidosSeed from "../../../data/pedidos.json";
 
 const KEYS = {
   categorias: "fs_categorias",
