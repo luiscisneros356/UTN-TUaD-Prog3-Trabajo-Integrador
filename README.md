@@ -75,7 +75,7 @@ Trabajo Integrador/
 ### 2. Clonar el repositorio
 
 ```bash
-git clone <URL-del-repositorio>
+git clone https://github.com/luiscisneros356/UTN-TUaD-Prog3-Trabajo-Integrador
 cd "Trabajo Integrador"
 ```
 
