@@ -9,7 +9,6 @@ export function renderAdminDashboard(app: HTMLElement): void {
   const pedidos = getPedidos();
 
   const disponibles = productos.filter((p) => p.disponible).length;
-  const inactivos = productos.length - disponibles;
   const pendientes = pedidos.filter((p) => p.estado === "PENDIENTE").length;
   const enPreparacion = pedidos.filter((p) => p.estado === "EN_PREPARACION").length;
   const entregados = pedidos.filter((p) => p.estado === "ENTREGADO").length;
@@ -61,14 +60,6 @@ export function renderAdminDashboard(app: HTMLElement): void {
         <div class="summary-box">
           <div class="sb-label">✅ Completados</div>
           <div class="sb-value">${entregados}</div>
-        </div>
-        <div class="summary-box">
-          <div class="sb-label">🟢 Categorías activas</div>
-          <div class="sb-value">${categorias.length}</div>
-        </div>
-        <div class="summary-box">
-          <div class="sb-label">⚪ Productos inactivos</div>
-          <div class="sb-value">${inactivos}</div>
         </div>
       </div>
     </div>

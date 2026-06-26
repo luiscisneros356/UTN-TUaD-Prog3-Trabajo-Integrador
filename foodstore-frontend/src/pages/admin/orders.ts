@@ -1,8 +1,8 @@
 import type { EstadoPedido } from "../../types";
 import { adminShell, wireChrome } from "../../components/layout";
-import { getPedidos, setPedidos } from "../../utils/storage";
+import { getPedidos } from "../../utils/storage";
 import { formatPrecio, formatFecha, estadoBadge } from "../../utils/format";
-import { escapeHtml, toast } from "../../utils/dom";
+import { escapeHtml } from "../../utils/dom";
 import { refresh } from "../../utils/router";
 
 const ESTADOS: EstadoPedido[] = [
@@ -46,12 +46,6 @@ export function renderAdminPedidos(app: HTMLElement): void {
       const cliente = p.usuarioDto
         ? `${p.usuarioDto.nombre} ${p.usuarioDto.apellido}`
         : "(sin cliente)";
-      const selectEstado = `
-        <select data-estado data-id="${p.id}">
-          ${ESTADOS.map(
-            (e) => `<option value="${e}" ${p.estado === e ? "selected" : ""}>${ESTADO_LABEL[e]}</option>`
-          ).join("")}
-        </select>`;
       return `
       <article class="order-card" style="cursor:default">
         <div class="order-head">
@@ -65,10 +59,6 @@ export function renderAdminPedidos(app: HTMLElement): void {
         <div class="order-foot">
           <span>${p.detalles.length} producto${p.detalles.length === 1 ? "" : "s"}</span>
           <span class="order-total">${formatPrecio(p.total)}</span>
-        </div>
-        <div style="margin-top:.7rem;display:flex;align-items:center;gap:.5rem">
-          <span style="font-size:.85rem;color:var(--text-soft)">Cambiar estado:</span>
-          ${selectEstado}
         </div>
       </article>`;
     })
@@ -95,14 +85,4 @@ export function renderAdminPedidos(app: HTMLElement): void {
     refresh();
   });
 
-  app.querySelectorAll<HTMLSelectElement>("[data-estado]").forEach((sel) => {
-    sel.addEventListener("change", () => {
-      const id = Number(sel.dataset.id);
-      const nuevo = sel.value as EstadoPedido;
-      const todos = getPedidos().map((p) => (p.id === id ? { ...p, estado: nuevo } : p));
-      setPedidos(todos);
-      toast(`Pedido #${id} → ${ESTADO_LABEL[nuevo]}.`);
-      refresh();
-    });
-  });
 }
