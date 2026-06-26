@@ -20,6 +20,11 @@ export function renderLogin(app: HTMLElement): void {
           </div>
           <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
         </form>
+        <div class="login-hint">
+          <strong>Cuentas de prueba:</strong><br />
+          Admin: admin@admin.com / 123456<br />
+          Cliente: cliente@food.com / cliente123
+        </div>
       </div>
     </div>
   `;
