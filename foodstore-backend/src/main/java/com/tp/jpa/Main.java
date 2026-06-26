@@ -9,10 +9,6 @@ import com.tp.jpa.repository.PedidoRepository;
 import com.tp.jpa.repository.ProductoRepository;
 import com.tp.jpa.repository.UsuarioRepository;
 import com.tp.jpa.util.JPAUtil;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -47,13 +43,13 @@ public class Main {
             System.out.print("Opción: ");
             String op = sc.nextLine().trim();
             switch (op) {
-                case "1": menuCategorias(); break;
-                case "2": menuProductos(); break;
-                case "3": menuUsuarios(); break;
-                case "4": menuPedidos(); break;
-                case "5": menuReportes(); break;
-                case "0": salir = true; break;
-                default: System.out.println("Opción inválida.");
+                case "1" -> menuCategorias();
+                case "2" -> menuProductos();
+                case "3" -> menuUsuarios();
+                case "4" -> menuPedidos();
+                case "5" -> menuReportes();
+                case "0" -> salir = true;
+                default -> System.out.println("Opción inválida.");
             }
         }
         JPAUtil.close();
@@ -73,12 +69,12 @@ public class Main {
             System.out.println("4. Listado");
             System.out.println("0. Volver");
             switch (leer("Opción: ")) {
-                case "1": altaCategoria(); break;
-                case "2": modificarCategoria(); break;
-                case "3": bajaCategoria(); break;
-                case "4": listarCategorias(); break;
-                case "0": volver = true; break;
-                default: System.out.println("Opción inválida.");
+                case "1" -> altaCategoria();
+                case "2" -> modificarCategoria();
+                case "3" -> bajaCategoria();
+                case "4" -> listarCategorias();
+                case "0" -> volver = true;
+                default -> System.out.println("Opción inválida.");
             }
         }
     }
@@ -186,12 +182,12 @@ public class Main {
             System.out.println("4. Listado");
             System.out.println("0. Volver");
             switch (leer("Opción: ")) {
-                case "1": altaProducto(); break;
-                case "2": modificarProducto(); break;
-                case "3": bajaProducto(); break;
-                case "4": listarProductos(); break;
-                case "0": volver = true; break;
-                default: System.out.println("Opción inválida.");
+                case "1" -> altaProducto();
+                case "2" -> modificarProducto();
+                case "3" -> bajaProducto();
+                case "4" -> listarProductos();
+                case "0" -> volver = true;
+                default -> System.out.println("Opción inválida.");
             }
         }
     }
@@ -363,13 +359,13 @@ public class Main {
             System.out.println("5. Buscar por mail");
             System.out.println("0. Volver");
             switch (leer("Opción: ")) {
-                case "1": altaUsuario(); break;
-                case "2": modificarUsuario(); break;
-                case "3": bajaUsuario(); break;
-                case "4": listarUsuarios(); break;
-                case "5": buscarUsuarioPorMail(); break;
-                case "0": volver = true; break;
-                default: System.out.println("Opción inválida.");
+                case "1" -> altaUsuario();
+                case "2" -> modificarUsuario();
+                case "3" -> bajaUsuario();
+                case "4" -> listarUsuarios();
+                case "5" -> buscarUsuarioPorMail();
+                case "0" -> volver = true;
+                default -> System.out.println("Opción inválida.");
             }
         }
     }
@@ -541,14 +537,14 @@ public class Main {
             System.out.println("6. Pedidos por estado");
             System.out.println("0. Volver");
             switch (leer("Opción: ")) {
-                case "1": altaPedido(); break;
-                case "2": cambiarEstadoPedido(); break;
-                case "3": bajaPedido(); break;
-                case "4": listarPedidos(); break;
-                case "5": pedidosPorUsuario(); break;
-                case "6": pedidosPorEstado(); break;
-                case "0": volver = true; break;
-                default: System.out.println("Opción inválida.");
+                case "1" -> altaPedido();
+                case "2" -> cambiarEstadoPedido();
+                case "3" -> bajaPedido();
+                case "4" -> listarPedidos();
+                case "5" -> pedidosPorUsuario();
+                case "6" -> pedidosPorEstado();
+                case "0" -> volver = true;
+                default -> System.out.println("Opción inválida.");
             }
         }
     }
@@ -696,7 +692,7 @@ public class Main {
                     .orElse("(sin usuario)");
             System.out.println(p.getId() + " | " + p.getFecha() + " | " + p.getEstado()
                     + " | " + p.getFormaPago() + " | " + usuario + " | "
-                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal()));
+                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal().doubleValue()));
         }
     }
 
@@ -721,7 +717,7 @@ public class Main {
         for (Pedido p : pedidos) {
             System.out.println(p.getId() + " | " + p.getFecha() + " | " + p.getEstado()
                     + " | " + p.getFormaPago() + " | "
-                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal()));
+                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal().doubleValue()));
         }
     }
 
@@ -738,7 +734,7 @@ public class Main {
                     .map(u -> u.getNombre() + " " + u.getApellido())
                     .orElse("(sin usuario)");
             System.out.println(p.getId() + " | " + p.getFecha() + " | " + usuario + " | "
-                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal()));
+                    + String.format(Locale.US, "$%.2f", p.getTotal() == null ? 0.0 : p.getTotal().doubleValue()));
         }
     }
 
@@ -753,12 +749,12 @@ public class Main {
             System.out.println("4. Total facturado");
             System.out.println("0. Volver");
             switch (leer("Opción: ")) {
-                case "1": reporteProductosPorCategoria(); break;
-                case "2": pedidosPorUsuario(); break;   // reutiliza la consulta del menú de Pedidos
-                case "3": pedidosPorEstado(); break;     // reutiliza la consulta del menú de Pedidos
-                case "4": reporteTotalFacturado(); break;
-                case "0": volver = true; break;
-                default: System.out.println("Opción inválida.");
+                case "1" -> reporteProductosPorCategoria();
+                case "2" -> pedidosPorUsuario();
+                case "3" -> pedidosPorEstado();
+                case "4" -> reporteTotalFacturado();
+                case "0" -> volver = true;
+                default -> System.out.println("Opción inválida.");
             }
         }
     }
@@ -790,7 +786,7 @@ public class Main {
     private static void reporteTotalFacturado() {
         List<Pedido> terminados = pedidoRepo.buscarPorEstado(Estado.TERMINADO);
         double total = terminados.stream()
-                .mapToDouble(p -> p.getTotal() == null ? 0.0 : p.getTotal())
+                .mapToDouble(p -> p.getTotal() == null ? 0.0 : p.getTotal().doubleValue())
                 .sum();
         System.out.println("Total facturado: " + String.format(Locale.US, "$%.2f", total));
     }
@@ -805,9 +801,8 @@ public class Main {
 
     /** Lee un ID (Long). Devuelve null si lo ingresado no es un número válido. */
     private static Long leerId(String prompt) {
-        String entrada = leer(prompt);
         try {
-            return Long.parseLong(entrada);
+            return Long.valueOf(leer(prompt));
         } catch (NumberFormatException e) {
             return null;
         }
@@ -815,12 +810,10 @@ public class Main {
 
     /** Lee un decimal. Devuelve null si está vacío o no es un número válido. */
     private static Double leerDecimal(String prompt) {
-        String entrada = leer(prompt);
-        if (entrada.isEmpty()) {
-            return null;
-        }
+        String s = leer(prompt).replace(",", ".");
+        if (s.isEmpty()) return null;
         try {
-            return Double.parseDouble(entrada.replace(",", "."));
+            return Double.valueOf(s);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -828,12 +821,10 @@ public class Main {
 
     /** Lee un entero. Devuelve null si está vacío o no es un número válido. */
     private static Integer leerEntero(String prompt) {
-        String entrada = leer(prompt);
-        if (entrada.isEmpty()) {
-            return null;
-        }
+        String s = leer(prompt);
+        if (s.isEmpty()) return null;
         try {
-            return Integer.parseInt(entrada);
+            return Integer.valueOf(s);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -857,10 +848,10 @@ public class Main {
     private static FormaPago leerFormaPago() {
         while (true) {
             switch (leer("Forma de pago (1-TARJETA, 2-TRANSFERENCIA, 3-EFECTIVO): ")) {
-                case "1": return FormaPago.TARJETA;
-                case "2": return FormaPago.TRANSFERENCIA;
-                case "3": return FormaPago.EFECTIVO;
-                default: System.out.println("Opción inválida, intente de nuevo.");
+                case "1" -> { return FormaPago.TARJETA; }
+                case "2" -> { return FormaPago.TRANSFERENCIA; }
+                case "3" -> { return FormaPago.EFECTIVO; }
+                default -> System.out.println("Opción inválida, intente de nuevo.");
             }
         }
     }
@@ -869,11 +860,11 @@ public class Main {
     private static Estado leerEstado() {
         while (true) {
             switch (leer("Estado (1-PENDIENTE, 2-CONFIRMADO, 3-TERMINADO, 4-CANCELADO): ")) {
-                case "1": return Estado.PENDIENTE;
-                case "2": return Estado.CONFIRMADO;
-                case "3": return Estado.TERMINADO;
-                case "4": return Estado.CANCELADO;
-                default: System.out.println("Opción inválida, intente de nuevo.");
+                case "1" -> { return Estado.PENDIENTE; }
+                case "2" -> { return Estado.CONFIRMADO; }
+                case "3" -> { return Estado.TERMINADO; }
+                case "4" -> { return Estado.CANCELADO; }
+                default -> System.out.println("Opción inválida, intente de nuevo.");
             }
         }
     }
