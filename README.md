@@ -34,7 +34,7 @@ El sistema está compuesto por:
 Trabajo Integrador/
 ├── data/                  ← JSON de datos semilla (compartido)
 │   ├── categorias.json
-│   ├── productos.json     (generado por el frontend)
+│   ├── productos.json
 │   ├── usuarios.json
 │   └── pedidos.json
 ├── foodstore-backend/     ← Java 23 · Gradle 8 · Hibernate 6 · H2
@@ -59,34 +59,86 @@ Trabajo Integrador/
 
 ---
 
-## Cómo correrlo
+## Instalación y requisitos previos
 
-### Requisitos previos
+### 1. Requisitos
 
-- **Java 23** o superior instalado y en el PATH
-- **Node.js 18+** y **npm** instalados
+| Herramienta | Versión mínima | Verificar instalación |
+|---|---|---|
+| Java JDK | 23 | `java -version` |
+| Gradle | 8 (incluido via wrapper) | no requiere instalación separada |
+| Node.js | 18 | `node -v` |
+| npm | 9 | `npm -v` |
+
+> Gradle no necesita instalarse por separado: el proyecto incluye `gradlew.bat` (Windows) y `gradlew` (Linux/Mac), que descargan la versión correcta automáticamente.
+
+### 2. Clonar el repositorio
+
+```bash
+git clone <URL-del-repositorio>
+cd "Trabajo Integrador"
+```
 
 ---
 
-### Backend (consola Java)
+## Configuración de la base de datos
 
-```bash
-cd foodstore-backend
+El backend usa **H2** como base de datos embebida en modo archivo. **No requiere ninguna instalación ni configuración manual.**
 
-# Ejecutar directamente con Gradle (recomendado)
-./gradlew run
+Al ejecutar el backend por primera vez, Hibernate crea automáticamente el archivo de base de datos en:
 
-# O en Windows
-gradlew.bat run
+```
+data/jpa_db.mv.db
 ```
 
-La base de datos H2 se crea automáticamente en `./data/jpa_db.mv.db` al primer arranque.
+La configuración de la conexión se encuentra en:
 
-> **Nota:** si aparece un error de lock al arrancar, hay un proceso Java anterior activo. Cerrarlo y volver a intentar.
+```
+foodstore-backend/src/main/resources/META-INF/persistence.xml
+```
+
+Los parámetros relevantes son:
+
+```xml
+<!-- URL de la base de datos en archivo -->
+<property name="jakarta.persistence.jdbc.url"
+          value="jdbc:h2:file:../data/jpa_db;AUTO_SERVER=FALSE"/>
+
+<!-- Crea/actualiza el esquema automáticamente al arrancar -->
+<property name="jakarta.persistence.schema-generation.database.action" value="update"/>
+```
+
+> **Advertencia benigna al arrancar:** Hibernate 6 puede mostrar `"H2Dialect does not need to be specified explicitly"`. Es normal y no afecta el funcionamiento.
+>
+> **Error de lock:** si aparece `"Database may be already in use"`, hay un proceso Java previo activo. Cerrarlo antes de volver a ejecutar.
+
+---
+
+## Cómo ejecutar el proyecto
+
+### Backend (consola Java)
+
+Abrir una terminal en la carpeta raíz del proyecto y ejecutar:
+
+```bash
+# Windows (recomendado)
+cd foodstore-backend
+gradlew.bat run
+
+# Linux / Mac
+cd foodstore-backend
+./gradlew run
+```
+
+El menú principal aparecerá en consola. Desde allí se puede navegar por los submenús de categorías, productos, usuarios, pedidos y reportes.
+
+**Primera ejecución:** la base de datos se crea sola. No hace falta cargar datos manualmente; los archivos JSON de `data/` son usados por el frontend. El backend permite crearlos desde consola.
 
 ---
 
 ### Frontend (SPA web)
+
+Abrir una **segunda terminal** (el backend puede seguir corriendo) y ejecutar:
 
 ```bash
 cd foodstore-frontend
@@ -94,11 +146,13 @@ cd foodstore-frontend
 # Instalar dependencias (solo la primera vez)
 npm install
 
-# Levantar servidor de desarrollo
+# Iniciar el servidor de desarrollo
 npm run dev
 ```
 
-Abrir el navegador en `http://localhost:5173`.
+Abrir el navegador en: **http://localhost:5173**
+
+En el primer acceso, la aplicación carga automáticamente los datos de los archivos JSON de `data/` en `localStorage`. No hace falta configurar nada adicional.
 
 #### Credenciales de acceso
 
@@ -108,14 +162,15 @@ Abrir el navegador en `http://localhost:5173`.
 | Cliente | cliente@food.com | cliente123 |
 
 ---
-##  Documentación Académica y Técnica (Formato PDF) 
 
-Se encuentra en el root del proyecto: Documentacion_academica_tecnica.pdf
-Pero tambien adjunto enlace //TODO agregar
+## Documentación Académica y Técnica (Formato PDF)
 
+Se encuentra en el root del proyecto: `Documentacion_academica_tecnica.pdf`
+
+---
 
 ## Video demostrativo
 
-[Ver video en YouTube](ENLACE_AQUI) //TODO agregar
+[Ver video en YouTube](ENLACE_AQUI)
 
 ---
