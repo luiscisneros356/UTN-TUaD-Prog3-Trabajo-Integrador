@@ -1,2 +1,3 @@
 .claude/
 *.msi
+data/*.db
