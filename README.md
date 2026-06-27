@@ -166,11 +166,12 @@ En el primer acceso, la aplicación carga automáticamente los datos de los arch
 ## Documentación Académica y Técnica (Formato PDF)
 
 Se encuentra en el root del proyecto: `Documentacion_academica_tecnica.pdf`
+Tambien en el enlace a drive  https://drive.google.com/drive/folders/1VpLS0nuGH7G_BK0WONnUfVQj22FDAMTF?usp=sharing
 
 ---
 
 ## Video demostrativo
 
-[Ver video en YouTube](ENLACE_AQUI)
+El enlace a drive https://drive.google.com/drive/folders/1VpLS0nuGH7G_BK0WONnUfVQj22FDAMTF?usp=sharing
 
 ---
